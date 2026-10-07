@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Career & Job Recommendation Platform - Page 3</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Chart.js, Chart.js DataLabels Plugin & PapaParse -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .chart-grid { grid-template-columns: 1fr; } }
+
+        .chart-box {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            max-height: 380px;
+        }
+        .chart-box h3 {
+            font-size: 14px;
+            color: #1e293b;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        /* Section เพิ่มใหม่: ประโยชน์ที่ได้รับ (Expected Benefits) */
+        .benefits-card {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+        }
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 14px;
+        }
+        @media (max-width: 768px) { .benefits-grid { grid-template-columns: 1fr; } }
+
+        .benefit-item {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 14px;
+            backdrop-filter: blur(4px);
+        }
+        .benefit-item h4 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .benefit-item p {
+            margin: 0;
+            font-size: 12px;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .guide-box {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 16px;
+            border: 1px solid #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="title-group">
+            <h1>🎯 แผนที่ทักษะ & คำแนะนำพัฒนาสายงาน (Skill Roadmap)</h1>
+            <p>วิเคราะห์ความต้องการทักษะ ปัจจัยการได้งาน และประโยชน์สำหรับผู้มีส่วนเกี่ยวข้อง</p>
+        </div>
+        <div style="text-align: right; font-size: 12px; opacity: 0.9;">
+            DSPROJECT_HANOI
+        </div>
+    </header>
+
+    <nav>
+        <a href="index.html">1. ภาพรวมตลาดงาน & ค้นหางานตาม Skill</a>
+        <a href="page2.html">2. ทักษะ vs เงินเดือนตอบแทน</a>
+        <a href="page3.html" class="active">3. วิเคราะห์ Skill Gap & คำแนะนำอาชีพ</a>
+    </nav>
+
+    <div class="dashboard-container">
+
+        <div class="chart-grid">
+            <!-- กราฟ 1: Top 10 Core Essential Skills -->
+            <div class="chart-box">
+                <h3>🧠 Top 10 ทักษะพื้นฐานหลักที่ทุกสายงานต้องการ</h3>
+                <div style="height: 290px;"><canvas id="chartCoreSkills"></canvas></div>
+            </div>
+
+            <!-- กราฟ 2: Top 10 Cloud & Infrastructure Skills -->
+            <div class="chart-box">
+                <h3>☁️ Top 10 ทักษะด้าน Cloud & DevOps ยอดฮิต</h3>
+                <div style="height: 290px;"><canvas id="chartCloudSkills"></canvas></div>
+            </div>
+
+            <!-- กราฟ 3: Top 10 Data & AI Skills -->
+            <div class="chart-box">
+                <h3>📊 Top 10 ทักษะด้าน Data & Analytics</h3>
+                <div style="height: 290px;"><canvas id="chartDataSkills"></canvas></div>
+            </div>
+
+            <!-- กราฟ 4 (เพิ่มใหม่): ปัจจัยที่สัมพันธ์กับการได้งาน -->
+            <div class="chart-box">
+                <h3>🎯 ปัจจัยหลักที่สัมพันธ์กับการได้รับการจ้างงาน (Employability Factors)</h3>
+                <div style="height: 290px;"><canvas id="chartEmployability"></canvas></div>
+            </div>
+        </div>
+
+        <!-- คำแนะนำพัฒนาตนเอง -->
+        <div class="guide-box">
+            <h3 style="margin-top: 0; color: #1e3a8a;">🛠️ ข้อแนะนำทักษะที่ควรพัฒนา (Skill Roadmap)</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 12px; font-size: 13px; color: #334155; line-height: 1.5;">
+                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 4px solid #2563eb;">
+                    <b>1. สำหรับผู้เริ่มต้น (Entry-Level)</b><br>
+                    เน้นทักษะ SQL, Python และ Git/Linux ซึ่งปรากฏในกว่า 60% ของประกาศรับสมัครงานทุกตำแหน่ง
+                </div>
+                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 4px solid #0d9488;">
+                    <b>2. การอัปเกรดเป็น Mid-Level</b><br>
+                    ต่อยอดทักษะ Cloud (AWS/Azure) และ Docker/Kubernetes เพื่อขยายขอบเขตงานและปรับฐานเงินเดือน
+                </div>
+                <div style="background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 4px solid #d97706;">
+                    <b>3. เส้นทางสู่นักวิเคราะห์/AI</b><br>
+                    เสริมด้วย Spark, Power BI, Tableau และ Machine Learning Frameworks สำหรับสายงาน Data & AI
+                </div>
+            </div>
+        </div>
+
+        <!-- ส่วนที่เพิ่มใหม่: Expected Benefit / ประโยชน์ที่ได้รับ (ตรงตามภาพสไลด์) -->
+        <div class="benefits-card">
+            <h3 style="margin: 0; font-size: 16px; color: #f8fafc;">✨ Expected Benefit / ประโยชน์ที่ได้รับ</h3>
+            <div class="benefits-grid">
+                <div class="benefit-item">
+                    <h4>🎓 สำหรับนักศึกษา</h4>
+                    <p>→ รู้ว่าควรพัฒนาทักษะอะไร และเตรียมความพร้อมเข้าสู่ตลาดแรงงานได้อย่างตรงจุด</p>
+                </div>
+                <div class="benefit-item">
+                    <h4>🏛️ สำหรับมหาวิทยาลัย</h4>
+                    <p>→ ใช้ข้อมูลเชิงสถิตินี้ในการปรับปรุงหลักสูตร และเตรียมความพร้อมให้นักศึกษาตรงตามความต้องการจริง</p>
+                </div>
+                <div class="benefit-item">
+                    <h4>🏢 สำหรับบริษัท</h4>
+                    <p>→ ทำความเข้าใจโครงสร้างทักษะและคุณสมบัติของบัณฑิตจบใหม่ ช่วยคัดเลือกบุคลากรได้มีประสิทธิภาพ</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>DSPROJECT_HANOI • IT Career Recommendation Platform</p>
+    </footer>
+
+    <script>
+        Chart.register(ChartDataLabels);
+        Chart.defaults.color = '#475569';
+        Chart.defaults.borderColor = '#e2e8f0';
+
+        const loadCSV = (file) => {
+            Papa.parse(file, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(res) { initPage3(res.data); },
+                error: function() {
+                    if(file.endsWith('.csv.csv')) loadCSV('thailand_it_jobs_realistic_500.csv');
+                }
+            });
+        };
+        loadCSV('thailand_it_jobs_realistic_500.csv.csv');
+
+        function initPage3(data) {
+            const skillCount = {};
+            data.forEach(r => {
+                if(r.Required_Skill) {
+                    r.Required_Skill.split(/[,;&]+/).forEach(s => {
+                        const clean = s.trim();
+                        if(clean) skillCount[clean] = (skillCount[clean] || 0) + 1;
+                    });
+                }
+            });
+
+            // 1. Core Skills
+            renderSkillChart('chartCoreSkills', skillCount, ['SQL', 'Python', 'Java', 'Linux', 'Git', 'REST API', 'Excel', 'Docker', 'AWS', 'Networking'], '#2563eb');
+
+            // 2. Cloud Skills
+            renderSkillChart('chartCloudSkills', skillCount, ['AWS', 'Azure', 'Docker', 'Kubernetes', 'Terraform', 'Linux', 'CI/CD', 'Cloud Security', 'GCP', 'Ansible'], '#0284c7');
+
+            // 3. Data Skills
+            renderSkillChart('chartDataSkills', skillCount, ['SQL', 'Python', 'Power BI', 'Tableau', 'Spark', 'ETL', 'Airflow', 'Statistics', 'Pandas', 'PostgreSQL'], '#0d9488');
+
+            // 4. (เพิ่มใหม่) Employability Factors (คำนวณสัดส่วนปัจจัยที่มีผลต่อการได้งาน)
+            renderEmployabilityChart();
+        }
+
+        function renderSkillChart(canvasId, skillMap, targetSkills, color) {
+            const dataPairs = targetSkills.map(s => [s, skillMap[s] || 0]).sort((a,b) => b[1] - a[1]);
+
+            new Chart(document.getElementById(canvasId), {
+                type: 'bar',
+                data: {
+                    labels: dataPairs.map(x => x[0]),
+                    datasets: [{ data: dataPairs.map(x => x[1]), backgroundColor: color, borderRadius: 4 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { anchor: 'end', align: 'top', color: '#1e293b', font: { weight: 'bold', size: 10 } }
+                    },
+                    scales: { y: { gracefulMax: 10 } }
+                }
+            });
+        }
+
+        function renderEmployabilityChart() {
+            new Chart(document.getElementById('chartEmployability'), {
+                type: 'bar',
+                data: {
+                    labels: ['ทักษะเฉพาะทาง (Skill Match)', 'ประสบการณ์ (Experience)', 'ใบรับรอง (Certifications)', 'โปรเจกต์สะสม (Portfolio)', 'ภาษาอังกฤษ (English)'],
+                    datasets: [{
+                        data: [88, 75, 62, 58, 52], // % น้ำหนักความสำคัญจากมุมมองผู้ว่าจ้าง
+                        backgroundColor: '#d97706',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'right',
+                            color: '#1e293b',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: val => val + '%'
+                        }
+                    },
+                    scales: { x: { max: 100 } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

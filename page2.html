@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Career & Job Recommendation Platform - Page 2</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Chart.js, Chart.js DataLabels Plugin & PapaParse -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 768px) { .chart-grid { grid-template-columns: 1fr; } }
+
+        .chart-box {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            max-height: 380px;
+        }
+        .chart-box h3 {
+            font-size: 14px;
+            color: #1e293b;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        .filter-card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #cbd5e1;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        .filter-card select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 13px;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="title-group">
+            <h1>💰 วิเคราะห์โครงสร้างเงินเดือน & ค่าตอบแทนทักษะไอที</h1>
+            <p>เปรียบเทียบค่าตอบแทนตามสายงาน ประสบการณ์ และทักษะเฉพาะทาง</p>
+        </div>
+        <div style="text-align: right; font-size: 12px; opacity: 0.9;">
+            DSPROJECT_HANOI
+        </div>
+    </header>
+
+    <nav>
+        <a href="index.html">1. ภาพรวมตลาดงาน & ค้นหางานตาม Skill</a>
+        <a href="page2.html" class="active">2. ทักษะ vs เงินเดือนตอบแทน</a>
+        <a href="page3.html">3. วิเคราะห์ Skill Gap & คำแนะนำอาชีพ</a>
+    </nav>
+
+    <div class="dashboard-container">
+
+        <!-- ตัวกรองเจาะลึก -->
+        <div class="filter-card">
+            <span style="font-size: 13px; font-weight: bold; color: #334155;">🔍 กรองข้อมูลตามกลุ่มธุรกิจ (Industry):</span>
+            <select id="selectIndustry" onchange="updatePage2Charts()">
+                <option value="">-- แสดงทุกประเภทธุรกิจ --</option>
+            </select>
+        </div>
+
+        <div class="chart-grid">
+            <!-- กราฟ 1: Top 10 ตำแหน่งงานเงินเดือนเฉลี่ยสูงสุด -->
+            <div class="chart-box">
+                <h3>💎 Top 10 ตำแหน่งงานที่ได้ค่าตอบแทนเฉลี่ยสูงสุด (บาท/เดือน)</h3>
+                <div style="height: 290px;"><canvas id="chartTopSalaryJobs"></canvas></div>
+            </div>
+
+            <!-- กราฟ 2: เงินเดือนเฉลี่ยแยกตามระดับประสบการณ์ -->
+            <div class="chart-box">
+                <h3>📈 อัตราเงินเดือนเฉลี่ยตามระดับประสบการณ์</h3>
+                <div style="height: 290px;"><canvas id="chartSalaryByExp"></canvas></div>
+            </div>
+
+            <!-- กราฟ 3: Top 10 Skills ที่สร้างมูลค่าเงินเดือนสูงที่สุด -->
+            <div class="chart-box">
+                <h3>🛠️ Top 10 ทักษะเฉพาะทางที่มีฐานเงินเดือนสูง</h3>
+                <div style="height: 290px;"><canvas id="chartHighValueSkills"></canvas></div>
+            </div>
+
+            <!-- กราฟ 4: การกระจายตัวช่วงเงินเดือน -->
+            <div class="chart-box">
+                <h3>📊 สัดส่วนการกระจายตัวของเงินเดือนตลาดงานไอที</h3>
+                <div style="height: 290px;"><canvas id="chartSalaryRange"></canvas></div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>DSPROJECT_HANOI • IT Career Recommendation Platform</p>
+    </footer>
+
+    <script>
+        Chart.register(ChartDataLabels);
+        Chart.defaults.color = '#475569';
+        Chart.defaults.borderColor = '#e2e8f0';
+
+        let rawData = [];
+        let chartInstances = {};
+
+        const loadCSV = (file) => {
+            Papa.parse(file, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(res) { parseAndInit(res.data); },
+                error: function() {
+                    if(file.endsWith('.csv.csv')) loadCSV('thailand_it_jobs_realistic_500.csv');
+                }
+            });
+        };
+        loadCSV('thailand_it_jobs_realistic_500.csv.csv');
+
+        function parseAndInit(data) {
+            rawData = data.map(r => {
+                let cleanSalary = 0;
+                if(r.Salary) {
+                    const salStr = String(r.Salary).replace(/,/g, '').replace(/"/g, '').trim();
+                    cleanSalary = parseFloat(salStr) || 0;
+                }
+                return { ...r, Salary: cleanSalary };
+            });
+
+            // Populate Industry Filter Dropdown
+            const indSelect = document.getElementById('selectIndustry');
+            const industries = Array.from(new Set(rawData.map(r => r.Industry).filter(Boolean))).sort();
+            industries.forEach(ind => {
+                const opt = document.createElement('option');
+                opt.value = ind; opt.textContent = ind;
+                indSelect.appendChild(opt);
+            });
+
+            updatePage2Charts();
+        }
+
+        function updatePage2Charts() {
+            const selectedInd = document.getElementById('selectIndustry').value;
+            const filtered = selectedInd ? rawData.filter(r => r.Industry === selectedInd) : rawData;
+
+            // Destroy old charts
+            Object.values(chartInstances).forEach(chart => chart.destroy());
+
+            // 1. Top 10 Salary Jobs
+            const jobSalMap = {};
+            filtered.forEach(r => {
+                if(r.Job_Title && r.Salary > 0) {
+                    if(!jobSalMap[r.Job_Title]) jobSalMap[r.Job_Title] = [];
+                    jobSalMap[r.Job_Title].push(r.Salary);
+                }
+            });
+            const avgSalJobs = Object.entries(jobSalMap).map(([title, sals]) => [
+                title,
+                Math.round(sals.reduce((a,b)=>a+b,0)/sals.length)
+            ]).sort((a,b) => b[1] - a[1]).slice(0, 10);
+
+            chartInstances.topSal = new Chart(document.getElementById('chartTopSalaryJobs'), {
+                type: 'bar',
+                data: {
+                    labels: avgSalJobs.map(x => x[0]),
+                    datasets: [{ data: avgSalJobs.map(x => x[1]), backgroundColor: '#059669', borderRadius: 4 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { anchor: 'end', align: 'top', color: '#065f46', font: { weight: 'bold', size: 9 }, formatter: val => val.toLocaleString() }
+                    },
+                    scales: { y: { gracefulMax: 8000 } }
+                }
+            });
+
+            // 2. Salary by Exp
+            const expSalMap = {};
+            filtered.forEach(r => {
+                if(r.Experience && r.Salary > 0) {
+                    if(!expSalMap[r.Experience]) expSalMap[r.Experience] = [];
+                    expSalMap[r.Experience].push(r.Salary);
+                }
+            });
+            const avgSalExp = Object.entries(expSalMap).map(([exp, sals]) => [
+                exp,
+                Math.round(sals.reduce((a,b)=>a+b,0)/sals.length)
+            ]).sort((a,b) => a[0].localeCompare(b[0]));
+
+            chartInstances.expSal = new Chart(document.getElementById('chartSalaryByExp'), {
+                type: 'bar',
+                data: {
+                    labels: avgSalExp.map(x => x[0]),
+                    datasets: [{ data: avgSalExp.map(x => x[1]), backgroundColor: '#3b82f6', borderRadius: 4 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { anchor: 'end', align: 'top', color: '#1e40af', font: { weight: 'bold', size: 10 }, formatter: val => val.toLocaleString() }
+                    },
+                    scales: { y: { gracefulMax: 8000 } }
+                }
+            });
+
+            // 3. Top 10 Skills Salary
+            const skillSalMap = {};
+            filtered.forEach(r => {
+                if(r.Required_Skill && r.Salary > 0) {
+                    r.Required_Skill.split(/[,;&]+/).forEach(s => {
+                        const clean = s.trim();
+                        if(clean) {
+                            if(!skillSalMap[clean]) skillSalMap[clean] = [];
+                            skillSalMap[clean].push(r.Salary);
+                        }
+                    });
+                }
+            });
+            const avgSalSkills = Object.entries(skillSalMap)
+                .filter(([_, sals]) => sals.length >= 3)
+                .map(([skill, sals]) => [skill, Math.round(sals.reduce((a,b)=>a+b,0)/sals.length)])
+                .sort((a,b) => b[1] - a[1]).slice(0, 10);
+
+            chartInstances.skillSal = new Chart(document.getElementById('chartHighValueSkills'), {
+                type: 'bar',
+                data: {
+                    labels: avgSalSkills.map(x => x[0]),
+                    datasets: [{ data: avgSalSkills.map(x => x[1]), backgroundColor: '#d97706', borderRadius: 4 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { anchor: 'end', align: 'top', color: '#92400e', font: { weight: 'bold', size: 9 }, formatter: val => val.toLocaleString() }
+                    },
+                    scales: { y: { gracefulMax: 8000 } }
+                }
+            });
+
+            // 4. Salary Ranges Distribution
+            const ranges = { '< 40k': 0, '40k - 60k': 0, '60k - 80k': 0, '80k - 100k': 0, '> 100k': 0 };
+            filtered.forEach(r => {
+                const s = r.Salary;
+                if(s < 40000) ranges['< 40k']++;
+                else if(s <= 60000) ranges['40k - 60k']++;
+                else if(s <= 80000) ranges['60k - 80k']++;
+                else if(s <= 100000) ranges['80k - 100k']++;
+                else if(s > 100000) ranges['> 100k']++;
+            });
+
+            chartInstances.salRange = new Chart(document.getElementById('chartSalaryRange'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(ranges),
+                    datasets: [{ data: Object.values(ranges), backgroundColor: ['#94a3b8','#60a5fa','#34d399','#fbbf24','#f87171'] }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            color: '#1e293b',
+                            font: { weight: 'bold', size: 11 },
+                            formatter: (val) => val > 0 ? val : ''
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

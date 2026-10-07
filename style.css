@@ -1,0 +1,428 @@
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+
+:root {
+    --bg-body: #edf2f7;
+    --card-bg: #ffffff;
+    --primary: #1e3a8a;
+    --primary-light: #3b82f6;
+    --accent-blue: #0284c7;
+    --accent-teal: #0d9488;
+    --accent-orange: #f97316;
+    --text-dark: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+}
+
+/* แก้ไขจาก - เป็น * เพื่อให้มีผลกับทุก Element */
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Sarabun', sans-serif; 
+}
+
+body { 
+    background-color: var(--bg-body); 
+    color: var(--text-dark); 
+    padding-bottom: 40px; 
+    -webkit-text-size-adjust: 100%;
+}
+
+/* ========================================== */
+/* 1. Header & Navigation (แก้ไขปรับปรุงแล้ว)   */
+/* ========================================== */
+header {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    color: white; 
+    padding: 20px;
+    display: flex; 
+    flex-direction: column; /* ให้ข้อความและส่วนหัวจัดเป็นแนวตั้งในหน้าจอเล็ก */
+    align-items: flex-start;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+}
+
+header .title-group h1 { 
+    font-size: 20px; 
+    font-weight: 700; 
+    margin-bottom: 6px; 
+    line-height: 1.3;
+}
+
+header .title-group p { 
+    font-size: 13px; 
+    color: #cbd5e0; 
+}
+
+/* ส่วนเมนู Navigation แบบรองรับการปัดเลื่อนซ้าย-ขวาบนมือถือ */
+nav { 
+    display: flex; 
+    justify-content: flex-start; 
+    align-items: center;
+    background: #0f172a; 
+    padding: 8px 12px; 
+    border-bottom: 3px solid var(--primary-light); 
+    width: 100%;
+    overflow-x: auto; /* เปิดให้เลื่อนซ้าย-ขวาได้ถ้าเมนูยาวเกินจอ */
+    white-space: nowrap; /* ป้องกันไม่ให้ปุ่มเมนูลอยตกบรรทัด */
+    -webkit-overflow-scrolling: touch; /* ให้เลื่อนลื่นบน iOS/Safari */
+}
+
+nav a { 
+    color: #94a3b8; 
+    text-decoration: none; 
+    padding: 8px 16px; 
+    font-size: 14px; 
+    font-weight: 600; 
+    border-radius: 6px; 
+    transition: 0.3s; 
+    display: inline-block;
+    flex-shrink: 0; /* ป้องกันปุ่มเมนูโดนบีบจนเบี้ยว */
+}
+
+nav a.active, nav a:hover { 
+    color: white; 
+    background: var(--primary-light); 
+}
+
+/* ซ่อนแถบ Scrollbar ของเมนูเพื่อให้สวยงาม */
+nav::-webkit-scrollbar {
+    display: none;
+}
+nav {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* ปรับ Container ไม่ให้ขอบติดหน้าจอมือถือเกินไป */
+.container, .dashboard-container { 
+    max-width: 1400px; 
+    margin: 16px auto; 
+    padding: 0 12px; 
+    width: 100%;
+}
+
+/* ========================================== */
+/* 2. Grid & Section Cards                    */
+/* ========================================== */
+.dashboard-grid { 
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 20px; 
+    margin-bottom: 24px; 
+}
+
+.section-card { 
+    background: var(--card-bg); 
+    border-radius: 12px; 
+    border: 1px solid var(--border-color); 
+    padding: 20px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04); 
+    margin-bottom: 20px;
+}
+
+.section-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    padding-bottom: 12px; 
+    margin-bottom: 16px; 
+    border-bottom: 2px solid #f1f5f9; 
+}
+
+.section-header .icon { 
+    background: var(--primary); 
+    color: white; 
+    width: 32px; 
+    height: 32px; 
+    border-radius: 8px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-weight: bold; 
+}
+
+.section-header h2 { 
+    font-size: 18px; 
+    color: var(--primary); 
+    font-weight: 700; 
+}
+
+/* ========================================== */
+/* 3. KPIs Grid                               */
+/* ========================================== */
+.kpi-row { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 12px; 
+    margin-bottom: 20px; 
+}
+
+.kpi-row-3 { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 16px; 
+    margin-bottom: 20px; 
+}
+
+.kpi-box { 
+    background: #f8fafc; 
+    border: 1px solid var(--border-color); 
+    border-radius: 8px; 
+    padding: 12px 16px; 
+    text-align: center; 
+    border-top: 3px solid var(--primary-light); 
+}
+
+.kpi-box .title { 
+    font-size: 12px; 
+    color: var(--text-muted); 
+    font-weight: 600; 
+    text-transform: uppercase; 
+}
+
+.kpi-box .value { 
+    font-size: 22px; 
+    font-weight: 700; 
+    color: var(--primary); 
+    margin: 4px 0; 
+}
+
+.kpi-box .sub { 
+    font-size: 11px; 
+    color: var(--accent-teal); 
+}
+
+/* ========================================== */
+/* 4. Chart Boxes & Grids                     */
+/* ========================================== */
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.chart-box {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    max-height: 380px;
+}
+
+.chart-box h3 {
+    font-size: 14px;
+    color: var(--text-dark);
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+/* ========================================== */
+/* 5. Search Filters & Checkboxes (Skill)    */
+/* ========================================== */
+.search-card, .filter-card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+.filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.field-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+}
+
+.field-input, select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    box-sizing: border-box;
+    background-color: #ffffff;
+}
+
+.checkbox-container {
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 10px;
+    background: #f8fafc;
+    max-height: 140px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #334155;
+    background: #ffffff;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-item:hover { background: #f1f5f9; }
+
+/* ========================================== */
+/* 6. Job Cards & Match Output                */
+/* ========================================== */
+.match-container {
+    display: grid;
+    grid-template-columns: 1.8fr 1.2fr;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.job-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary-light);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+}
+
+.job-badge {
+    background: #dcfce7;
+    color: #166534;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+/* ========================================== */
+/* 7. Expected Benefits & Guide Box           */
+/* ========================================== */
+.benefits-card {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 14px;
+}
+
+.benefit-item {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 14px;
+    backdrop-filter: blur(4px);
+}
+
+.benefit-item h4 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    color: #38bdf8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.benefit-item p {
+    margin: 0;
+    font-size: 12px;
+    color: #e2e8f0;
+    line-height: 1.5;
+}
+
+.guide-box {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 16px;
+    border: 1px solid #cbd5e1;
+}
+
+/* Insight Callout */
+.insight-callout { 
+    background: #eff6ff; 
+    border-left: 4px solid var(--primary-light); 
+    padding: 12px 16px; 
+    border-radius: 0 8px 8px 0; 
+    font-size: 13px; 
+    color: #1e40af; 
+    margin-top: 16px; 
+}
+
+/* ========================================== */
+/* 8. Data Tables                             */
+/* ========================================== */
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 12px; 
+    font-size: 13px; 
+}
+
+th, td { 
+    padding: 10px 12px; 
+    text-align: left; 
+    border-bottom: 1px solid var(--border-color); 
+}
+
+th { 
+    background-color: #f1f5f9; 
+    color: var(--primary); 
+    font-weight: 700; 
+}
+
+tr:hover { background-color: #f8fafc; }
+
+footer { 
+    text-align: center; 
+    padding: 20px; 
+    color: var(--text-muted); 
+    font-size: 12px; 
+}
+
+/* ========================================== */
+/* 📱 9. Media Queries (สำหรับมือถือ/แท็บเล็ต)  */
+/* ========================================== */
+@media (max-width: 992px) { 
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .benefits-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .chart-grid { grid-template-columns: 1fr; }
+    .match-container { grid-template-columns: 1fr; }
+    .kpi-row-3 { grid-template-columns: 1fr; }
+    .filter-row { grid-template-columns: 1fr; }
+}

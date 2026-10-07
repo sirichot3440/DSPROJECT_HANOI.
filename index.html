@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Career & Job Recommendation Platform</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Chart.js, Chart.js DataLabels Plugin & PapaParse -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <style>
+        body { background-color: #f1f5f9; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .dashboard-container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+
+        /* KPI Row (เหลือ 3 กล่อง) */
+        .kpi-row-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 600px) { .kpi-row-3 { grid-template-columns: 1fr; } }
+
+        /* Compact Grid for Charts */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 768px) { .chart-grid { grid-template-columns: 1fr; } }
+
+        .chart-box {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            max-height: 360px;
+        }
+        .chart-box h3 {
+            font-size: 14px;
+            color: #1e293b;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        /* Search & Checkbox Skill Section */
+        .search-card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+        }
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 600px) { .filter-row { grid-template-columns: 1fr; } }
+
+        .field-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 4px;
+        }
+        .field-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        /* Container สำหรับ Checkbox สกิลแบบสวยงาม */
+        .checkbox-container {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 10px;
+            background: #f8fafc;
+            max-height: 140px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #334155;
+            background: #ffffff;
+            padding: 6px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .checkbox-item:hover { background: #f1f5f9; }
+        .checkbox-item input { cursor: pointer; }
+
+        /* Job Cards & Matching Output */
+        .match-container {
+            display: grid;
+            grid-template-columns: 1.8fr 1.2fr;
+            gap: 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 850px) { .match-container { grid-template-columns: 1fr; } }
+
+        .job-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #2563eb;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+        }
+        .job-badge {
+            background: #dcfce7;
+            color: #166534;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="title-group">
+            <h1>💼 IT Career Recommendation & Job Matching Platform</h1>
+            <p>วิเคราะห์สถิติตลาดงานไอที และค้นหาตำแหน่งงานตามทักษะของคุณ</p>
+        </div>
+        <div style="text-align: right; font-size: 12px; opacity: 0.9;">
+            DSPROJECT_HANOI
+        </div>
+    </header>
+
+    <nav>
+        <a href="index.html" class="active">1. ภาพรวมตลาดงาน & ค้นหางานตาม Skill</a>
+        <a href="page2.html">2. ทักษะ vs เงินเดือนตอบแทน</a>
+        <a href="page3.html">3. วิเคราะห์ Skill Gap & คำแนะนำอาชีพ</a>
+    </nav>
+
+    <div class="dashboard-container">
+
+        <!-- ===== 1. KPIs (เอาการ์ดฐานเงินเดือนออก เหลือ 3 กล่อง) ===== -->
+        <div class="section-card">
+            <div class="kpi-row-3">
+                <div class="kpi-box">
+                    <div class="title">ตำแหน่งงานทั้งหมด</div>
+                    <div class="value" id="kpiTotal">0</div>
+                    <div class="sub">ประกาศรับสมัคร</div>
+                </div>
+                <div class="kpi-box">
+                    <div class="title">จำนวนบริษัท</div>
+                    <div class="value" id="kpiCompanies">0</div>
+                    <div class="sub">องค์กรชั้นนำ</div>
+                </div>
+                <div class="kpi-box">
+                    <div class="title">เปิดรับเด็กจบใหม่</div>
+                    <div class="value" id="kpiFresh">0</div>
+                    <div class="sub" id="kpiFreshPercent">0%</div>
+                </div>
+            </div>
+
+            <!-- ===== 2. CHARTS GRID (Top 10 ทุกอัน + แสดงตัวเลขบนกราฟ) ===== -->
+            <div class="chart-grid">
+                <div class="chart-box">
+                    <h3>📊 Top 10 ตำแหน่งงานยอดนิยม</h3>
+                    <div style="height: 270px;"><canvas id="chartTopJobs"></canvas></div>
+                </div>
+                <div class="chart-box">
+                    <h3>🏢 Top 10 ประเภทธุรกิจ (Industry)</h3>
+                    <div style="height: 270px;"><canvas id="chartIndustry"></canvas></div>
+                </div>
+                <div class="chart-box">
+                    <h3>🛠️ Top 10 ทักษะที่ต้องการมากที่สุด</h3>
+                    <div style="height: 270px;"><canvas id="chartTopSkills"></canvas></div>
+                </div>
+                <div class="chart-box">
+                    <h3>📈 สัดส่วนตามระดับประสบการณ์</h3>
+                    <div style="height: 270px;"><canvas id="chartExp"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 3. SEARCH & CAREER MATCHER (ตัวเลือกแบบติ๊ก Checkbox) ===== -->
+        <div class="search-card">
+            <h2 style="font-size: 16px; margin-top:0; color: #0f172a;">🔎 ค้นหาตำแหน่งงาน & วิเคราะห์ Skill Gap ของคุณ</h2>
+            
+            <div class="filter-row">
+                <!-- ตำแหน่งงาน -->
+                <div class="field-group">
+                    <label>เลือกตำแหน่งงานที่สนใจ</label>
+                    <select id="filterJob" class="field-input" onchange="runMatching()">
+                        <option value="">-- แสดงทุกตำแหน่งงาน --</option>
+                    </select>
+                </div>
+
+                <!-- ประสบการณ์ -->
+                <div class="field-group">
+                    <label>ประสบการณ์ของคุณ</label>
+                    <select id="filterExp" class="field-input" onchange="runMatching()">
+                        <option value="">-- ทุกระดับประสบการณ์ --</option>
+                        <option value="0-1 Years">0 - 1 ปี (เด็กจบใหม่)</option>
+                        <option value="0-2 Years">0 - 2 ปี (Junior)</option>
+                        <option value="1-3 Years">1 - 3 ปี (Mid-Level)</option>
+                        <option value="3-5 Years">3 - 5 ปี (Experienced)</option>
+                        <option value="5+ Years">5 ปีขึ้นไป (Senior)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- ส่วนติ๊กเลือก Skill (Checkbox) -->
+            <div class="field-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="margin: 0;">☑️ ติ๊กเลือกทักษะที่คุณมี (Skills You Have):</label>
+                    <input type="text" id="skillSearch" class="field-input" placeholder="🔍 พิมพ์เพื่อค้นหา Skill..." onkeyup="filterSkills()" style="width: 200px; padding: 4px 8px;">
+                </div>
+                
+                <div class="checkbox-container" id="skillCheckboxGroup">
+                    <!-- JS จะสร้าง Checkbox สกิลให้อัตโนมัติ -->
+                </div>
+            </div>
+
+            <!-- รายการผลลัพธ์ -->
+            <div class="match-container">
+                <div>
+                    <h3 style="font-size: 14px; color: #1e293b; margin-bottom: 10px;" id="matchTitle">🏢 บริษัทที่เปิดรับสมัคร</h3>
+                    <div id="jobResults"></div>
+                </div>
+                <div>
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 14px; border-radius: 8px;">
+                        <h3 style="font-size: 14px; color: #1e40af; margin-top: 0;">💡 คำแนะนำพัฒนาทักษะ (Skill Gap)</h3>
+                        <div id="recommendContent" style="font-size: 13px; color: #1e3a8a; line-height: 1.5;">
+                            ติ๊กเลือกทักษะที่คุณมี เพื่อดูคำแนะนำทักษะที่ควรศึกษาเพิ่มเพื่อเพิ่มฐานเงินเดือน
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer>
+        <p>DSPROJECT_HANOI • IT Career Recommendation Platform</p>
+    </footer>
+
+    <script>
+        // ลงทะเบียน Plugin สำหรับแสดงตัวเลขบนกราฟ
+        Chart.register(ChartDataLabels);
+
+        Chart.defaults.color = '#475569';
+        Chart.defaults.borderColor = '#e2e8f0';
+
+        let rawData = [];
+        let availableSkills = new Set();
+
+        // โหลดข้อมูล CSV (จัดการลบลูกน้ำ และรองรับทั้ง .csv และ .csv.csv)
+        const loadCSV = (file) => {
+            Papa.parse(file, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(res) { parseAndInit(res.data); },
+                error: function() {
+                    if(file.endsWith('.csv.csv')) loadCSV('thailand_it_jobs_realistic_500.csv');
+                }
+            });
+        };
+        loadCSV('thailand_it_jobs_realistic_500.csv.csv');
+
+        function parseAndInit(data) {
+            rawData = data.map(r => {
+                let cleanSalary = 0;
+                if(r.Salary) {
+                    const salStr = String(r.Salary).replace(/,/g, '').replace(/"/g, '').trim();
+                    cleanSalary = parseFloat(salStr) || 0;
+                }
+                return { ...r, Salary: cleanSalary };
+            });
+
+            // 1. Render KPIs (3 กล่อง)
+            document.getElementById('kpiTotal').innerText = rawData.length.toLocaleString();
+            const compSet = new Set(rawData.map(r => r.Company).filter(Boolean));
+            document.getElementById('kpiCompanies').innerText = compSet.size.toLocaleString();
+
+            const freshRows = rawData.filter(r => r.Experience === '0-1 Years' || r.Experience === '0-2 Years');
+            document.getElementById('kpiFresh').innerText = freshRows.length.toLocaleString();
+            document.getElementById('kpiFreshPercent').innerText = ((freshRows.length / rawData.length) * 100).toFixed(1) + '% ของทั้งหมด';
+
+            // 2. Render Charts (Top 10 + Numbers)
+            initCharts();
+
+            // 3. Populate Select & Checkboxes
+            initControls();
+
+            // 4. Initial Match
+            runMatching();
+        }
+
+        function initCharts() {
+            // Chart 1: Top 10 Jobs
+            const jobMap = {};
+            rawData.forEach(r => { if(r.Job_Title) jobMap[r.Job_Title] = (jobMap[r.Job_Title] || 0) + 1; });
+            const sortedJobs = Object.entries(jobMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
+
+            new Chart(document.getElementById('chartTopJobs'), {
+                type: 'bar',
+                data: {
+                    labels: sortedJobs.map(x => x[0]),
+                    datasets: [{ data: sortedJobs.map(x => x[1]), backgroundColor: '#2563eb', borderRadius: 4 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { anchor: 'end', align: 'top', color: '#1e293b', font: { weight: 'bold', size: 10 } }
+                    },
+                    scales: { y: { gracefulMax: 5 } }
+                }
+            });
+
+            // Chart 2: Top 10 Industry
+            const indMap = {};
+            rawData.forEach(r => { if(r.Industry) indMap[r.Industry] = (indMap[r.Industry] || 0) + 1; });
+            const sortedInd = Object.entries(indMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
+
+            new Chart(document.getElementById('chartIndustry'), {
+                type: 'bar',
+                data: {
+                    labels: sortedInd.map(x => x[0]),
+                    datasets: [{ data: sortedInd.map(x => x[1]), backgroundColor: '#0284c7', borderRadius: 4 }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { anchor: 'end', align: 'right', color: '#1e293b', font: { weight: 'bold', size: 10 } }
+                    },
+                    scales: { x: { gracefulMax: 10 } }
+                }
+            });
+
+            // Chart 3: Top 10 Skills
+            const skillMap = {};
+            rawData.forEach(r => {
+                if(r.Required_Skill) {
+                    r.Required_Skill.split(/[,;&]+/).forEach(s => {
+                        const clean = s.trim();
+                        if(clean) {
+                            skillMap[clean] = (skillMap[clean] || 0) + 1;
+                            availableSkills.add(clean);
+                        }
+                    });
+                }
+            });
+            const sortedSkills = Object.entries(skillMap).sort((a,b) => b[1] - a[1]).slice(0, 10);
+
+            new Chart(document.getElementById('chartTopSkills'), {
+                type: 'bar',
+                data: {
+                    labels: sortedSkills.map(x => x[0]),
+                    datasets: [{ data: sortedSkills.map(x => x[1]), backgroundColor: '#0d9488', borderRadius: 4 }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: { anchor: 'end', align: 'top', color: '#1e293b', font: { weight: 'bold', size: 10 } }
+                    },
+                    scales: { y: { gracefulMax: 10 } }
+                }
+            });
+
+            // Chart 4: Experience
+            const expMap = {};
+            rawData.forEach(r => { if(r.Experience) expMap[r.Experience] = (expMap[r.Experience] || 0) + 1; });
+
+            new Chart(document.getElementById('chartExp'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(expMap),
+                    datasets: [{ data: Object.values(expMap), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'] }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        datalabels: {
+                            color: '#ffffff',
+                            font: { weight: 'bold', size: 11 },
+                            formatter: (val) => val > 0 ? val : ''
+                        }
+                    }
+                }
+            });
+        }
+
+        function initControls() {
+            // Fill Job Title Select
+            const jobSelect = document.getElementById('filterJob');
+            const jobs = Array.from(new Set(rawData.map(r => r.Job_Title).filter(Boolean))).sort();
+            jobs.forEach(j => {
+                const opt = document.createElement('option');
+                opt.value = j; opt.textContent = j;
+                jobSelect.appendChild(opt);
+            });
+
+            // Fill Skill Checkboxes
+            const checkboxGroup = document.getElementById('skillCheckboxGroup');
+            Array.from(availableSkills).sort().forEach(s => {
+                const label = document.createElement('label');
+                label.className = 'checkbox-item';
+                label.innerHTML = `<input type="checkbox" value="${s}" onchange="runMatching()"> ${s}`;
+                checkboxGroup.appendChild(label);
+            });
+        }
+
+        function filterSkills() {
+            const query = document.getElementById('skillSearch').value.toLowerCase();
+            const items = document.querySelectorAll('.checkbox-item');
+            items.forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(query) ? 'flex' : 'none';
+            });
+        }
+
+        function getSelectedSkills() {
+            const checked = document.querySelectorAll('#skillCheckboxGroup input[type="checkbox"]:checked');
+            return Array.from(checked).map(cb => cb.value);
+        }
+
+        function runMatching() {
+            const jobFilter = document.getElementById('filterJob').value;
+            const expFilter = document.getElementById('filterExp').value;
+            const mySkills = getSelectedSkills();
+
+            // Filter
+            let filtered = rawData.filter(r => {
+                if(jobFilter && r.Job_Title !== jobFilter) return false;
+                if(expFilter && r.Experience !== expFilter) return false;
+                return true;
+            });
+
+            const missingSkillsCount = {};
+
+            // Score Matching
+            const scored = filtered.map(r => {
+                const reqs = (r.Required_Skill || '').split(/[,;&]+/).map(s => s.trim()).filter(Boolean);
+                let matchCount = 0;
+                let missing = [];
+
+                reqs.forEach(req => {
+                    if(mySkills.includes(req)) matchCount++;
+                    else {
+                        missing.push(req);
+                        missingSkillsCount[req] = (missingSkillsCount[req] || 0) + 1;
+                    }
+                });
+
+                const score = reqs.length > 0 ? Math.round((matchCount / reqs.length) * 100) : 100;
+
+                return { ...r, score, reqs, missing };
+            });
+
+            scored.sort((a,b) => b.score - a.score || b.Salary - a.Salary);
+
+            // Render Jobs
+            renderJobList(scored.slice(0, 10));
+
+            // Render Recommendations
+            renderRecommendations(missingSkillsCount, scored.length, mySkills);
+        }
+
+        function renderJobList(jobs) {
+            const container = document.getElementById('jobResults');
+            document.getElementById('matchTitle').innerText = `🏢 บริษัทที่เปิดรับสมัคร (${jobs.length} รายการ)`;
+
+            if(jobs.length === 0) {
+                container.innerHTML = '<div style="font-size:13px; color:#ef4444; padding:10px;">ไม่พบตำแหน่งงานที่ตรงตามเงื่อนไข</div>';
+                return;
+            }
+
+            container.innerHTML = jobs.map(j => `
+                <div class="job-card">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <strong style="font-size:14px; color:#0f172a;">${j.Job_Title}</strong>
+                            <div style="font-size:12px; color:#2563eb; font-weight:600;">🏢 ${j.Company} <span style="color:#64748b; font-weight:normal;">(${j.Industry})</span></div>
+                        </div>
+                        <span class="job-badge">${j.score}% Match</span>
+                    </div>
+                    <div style="font-size:12px; color:#475569; margin-top:6px;">
+                        💰 <b>${j.Salary.toLocaleString()}</b> บาท/เดือน • ⏳ ${j.Experience}
+                    </div>
+                    ${j.missing.length > 0 ? `
+                        <div style="font-size:11px; color:#b91c1c; margin-top:4px;">
+                            ศึกษาเพิ่ม: ${j.missing.slice(0,4).join(', ')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderRecommendations(missingCount, totalFound, mySkills) {
+            const container = document.getElementById('recommendContent');
+            const sortedMissing = Object.entries(missingCount).sort((a,b) => b[1] - a[1]).slice(0, 5);
+
+            if(mySkills.length === 0) {
+                container.innerHTML = 'ติ๊กเลือกทักษะที่คุณมีจากช่องด้านบน เพื่อวิเคราะห์ Skill Gap และแนวทางการอัปเงินเดือนครับ';
+                return;
+            }
+
+            container.innerHTML = `
+                <p style="margin-top:0;">พบตำแหน่งงานทั้งหมด <b>${totalFound}</b> ตำแหน่ง</p>
+                <b>🚀 Top Skills แนะนำเรียนรู้เพิ่มเพื่ออัปฐานเงินเดือน:</b>
+                <ul style="padding-left:18px; margin-top:6px; margin-bottom:10px;">
+                    ${sortedMissing.map(s => `<li><b>${s[0]}</b> (พบใน ${s[1]} ประกาศ)</li>`).join('')}
+                </ul>
+                <div style="background:#ffffff; padding:8px; border-radius:6px; border:1px solid #bfdbfe; font-size:12px;">
+                    💡 การเพิ่มทักษะเหล่านี้ลงใน Resume จะช่วยเพิ่มอัตราการแมตช์งานได้สูงสุดถึง 100%!
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
